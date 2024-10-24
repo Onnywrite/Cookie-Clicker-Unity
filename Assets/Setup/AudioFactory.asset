@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a413e640dee14c4e8730cd77bc4374f, type: 3}
+  m_Name: AudioFactory
+  m_EditorClassIdentifier: 
+  PlusScore: {fileID: 8300000, guid: c4b39a3a3edc2da45a486845ddb8b1e2, type: 3}
+  MinusScore: {fileID: 8300000, guid: 79faa8b944d8d3e4992200b8e65b3008, type: 3}
+  StateChanged: {fileID: 8300000, guid: f605d2f1a394bb343ba7aabaab953b7d, type: 3}
+  DataTransfering: {fileID: 8300000, guid: 1525541e5b049774a845a5781c89eb5d, type: 3}
+  Clicks:
+  - {fileID: 8300000, guid: 76744eae2bc6a1b499b2c14efb61cced, type: 3}
+  - {fileID: 8300000, guid: 881bff43e98c60c44806fb464cb74e45, type: 3}

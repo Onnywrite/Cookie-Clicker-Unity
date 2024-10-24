@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Onnywrite.Common;
+using UnityEngine;
 
 public sealed class StandartState : GameState
 {
@@ -6,13 +7,13 @@ public sealed class StandartState : GameState
     private readonly Cookie _cookie;
     private int _clicked = 0;
 
-    public StandartState(ScoreBar bar, IStateHandler<GameState> handler, Cookie cookiePrefab)
-        : base(bar, handler)
+    public StandartState(ScoreBar bar, IStateHandler<GameState> handler,
+        Cookie cookiePrefab, AudioSource asource, AudioFactory sounds)
+        : base(bar, handler, asource, sounds)
     {
         _cookiePrefab = cookiePrefab;
         _cookie = GameObject.Instantiate(_cookiePrefab, Vector3.zero, Quaternion.identity);
         _cookie.gameObject.SetActive(false);
-        _cookie.Clicked.AddListener(OnCookieClicked);
     }
 
     public override void Dispose()
@@ -20,21 +21,27 @@ public sealed class StandartState : GameState
         GameObject.Destroy(_cookie);
     }
 
-    private void OnCookieClicked(Cookie clickedCookie)
+    private void OnClickAnimationEnded(Cookie cookie)
     {
-        scoreBar.Score++;
-        _clicked++;
-        if (_clicked == 10) 
-        {
-            SwitchState<CrazyState>();
-        }
-        _cookie.SetRandomPosition();
-        _cookie.SetRandomScale();
+        cookie.SetRandomPosition();
+        cookie.SetRandomScale();
+        if (scoreBar.Score >= 1309) SwitchState<WinState>();
+        if (_clicked == 10) SwitchState<CrazyState>();
     }
 
     public override void Update()
     {
-
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (_cookie.TryClick(Game.GetMousePos(), OnClickAnimationEnded))
+            {
+                //audio.PlayOneShot(sounds.PlusScore);
+                if (Random.Range(1, 11) != 1) audio.PlayOneShot(sounds.Clicks.Pick());
+                else audio.PlayOneShot(sounds.DataTransfering);
+                scoreBar.Increment();
+                _clicked++;
+            }
+        }
     }
 
     public override void Activate()

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 using Random = UnityEngine.Random;
 namespace Onnywrite.Common
 {
@@ -28,5 +29,17 @@ namespace Onnywrite.Common
 
         public static Vector2 RandomVec2(float minX, float maxX, float minY, float maxY)
             => RandomVec3(minX, maxX, minY, maxY, 0f, 0f);
+
+        public static bool InRange(float num, float minInclusive, float maxInclusive)
+        {
+            MinMax(ref minInclusive, ref maxInclusive);
+            return num >= minInclusive && num <= maxInclusive;
+        }
+
+        public static T Pick<T>(this T[] array)
+        {
+            if (array.Length == 0) return default;
+            return array[Random.Range(0, array.Length)];
+        }
     }
 }
