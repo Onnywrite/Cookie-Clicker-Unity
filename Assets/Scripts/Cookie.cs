@@ -1,40 +1,60 @@
 using Onnywrite.Common;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 [SelectionBase]
 public class Cookie : MonoBehaviour
 {
     [SerializeField]
-    private SpriteRenderer _sprite;
-
-    private float _minScale = 0.1f;
-    private float _maxScale = 2f;
-    private Transform _colliderTransform;
+    private CookieParams _params;
+    [SerializeField]
+    private CookieVisualBase _visual;
+    
+    private float _trans;
     private float _scale;
     private Vector2 _pos;
-    private float _trans;
+    private Transform _colliderTransform;
+    private Collider2D _collider;
+    private Rigidbody2D _rb;
 
-    protected virtual void Awake()
+    //private const float HEIGHT = 360f;
+    //private const float WIDTH = 360f;
+
+    private void Awake()
     {
-        MathGeek.MinMax(ref _minScale, ref _maxScale);
-        _colliderTransform = GetComponent<Collider2D>().transform;
+        _collider = GetComponent<Collider2D>();
+        _colliderTransform = _collider.transform;
+        _rb = GetComponent<Rigidbody2D>();
+        ApplyGravity(false);
         Clicked = new();
+    }
+
+    public virtual float Transparency
+    {
+        get => _trans;
+        set
+        {
+            _trans = Mathf.Clamp(value, 0f, 1f);
+            var old = _visual.Color;
+            _visual.Color = new(old.r, old.g, old.b, _trans);
+        }
     }
 
     public virtual float Scale
     {
         get => _scale;
-        private set
+        set
         {
             _scale = value;
             Vector3 scaleVec = new(_scale, _scale, _scale);
             transform.localScale = scaleVec;
         }
     }
-    
+
     public virtual Vector2 Position
     {
         get => _pos;
@@ -47,64 +67,32 @@ public class Cookie : MonoBehaviour
         }
     }
 
-    public virtual Color SpriteColor
-    {
-        get => _sprite.color;
-        set => _sprite.color = value;
-    }
-
     public UnityEvent<Cookie> Clicked { get; private set; }
 
-    public virtual float Transparency 
+    public virtual bool TryClick(Vector2 point, Action<Cookie> clickedCallback)
     {
-        get => _trans;
-        set
+        if (_collider.OverlapPoint(point) && !_visual.IsBeingClicked)
         {
-            _trans = Mathf.Clamp(value, 0f, 1f);
-            var old = SpriteColor;
-            SpriteColor = new(old.r, old.g, old.b, _trans);
+            _visual.Click(clickedCallback, this);
+            Clicked.Invoke(this);
+            return true;
         }
+        return false;
     }
 
-
-    public float MinScale
+    public void ApplyGravity(bool apply = true)
     {
-        get => _minScale;
-        set
-        {
-            _minScale = value;
-            MathGeek.MinMax(ref _minScale, ref _maxScale);
-        }
+        _rb.simulated = apply;
     }
 
-    public float MaxScale
+    public virtual void SetRandomScale(float min, float max)
     {
-        get => _maxScale;
-        set
-        {
-            _maxScale = value;
-            MathGeek.MinMax(ref _minScale, ref _maxScale);
-        }
+        MathGeek.MinMax(ref min, ref max);
+        Scale = Random.Range(min, max);
     }
-
-    private void OnMouseDown()
-    {
-        Clicked.Invoke(this);
-    }
-
-    /*
-    ??? void Setup(CookieFactory setup)
-    {
-        MaxScale = setup.MaxScale;
-        MinScale = setup.MinScale;
-        Transparency = setup.Transparency;
-    }
-    */
 
     public virtual void SetRandomScale()
-    {
-        Scale = Random.Range(MinScale, MaxScale);
-    }
+        => SetRandomScale(_params.MinScale, _params.MaxScale);
 
     public virtual void SetRandomPosition(float minX, float maxX, float minY, float maxY)
     {
@@ -122,5 +110,24 @@ public class Cookie : MonoBehaviour
         Transparency = Random.Range(min, max);
     }
 
-    public virtual void SetRandomTransparency() => SetRandomTransparency(0f, 1f);
+    public virtual void SetRandomTransparency()
+        => SetRandomTransparency(_params.MinTransparency, _params.MaxTransparency);
+
+    public virtual void Randomize(RandomizeBitmap bitmap = RandomizeBitmap.All)
+    {
+        if ((bitmap & RandomizeBitmap.Position) == RandomizeBitmap.Position)
+            SetRandomPosition();
+        if ((bitmap & RandomizeBitmap.Scale) == RandomizeBitmap.Scale)
+            SetRandomScale();
+        if ((bitmap & RandomizeBitmap.Transparency) == RandomizeBitmap.Transparency)
+            SetRandomTransparency();
+    }
+}
+
+public enum RandomizeBitmap
+{
+    Position = 1,
+    Scale = 2,
+    Transparency = 4,
+    All = 7
 }
